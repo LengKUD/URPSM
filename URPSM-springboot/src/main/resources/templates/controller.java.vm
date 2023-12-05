@@ -1,0 +1,122 @@
+package ${package.Controller};
+
+import com.lengch.common.Result;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.RequestMapping;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+import ${package.Entity}.${entity};
+import ${package.Service}.${table.serviceName};
+
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+#if(${swagger})
+@Api(value = "${entity}接口文档", tags = {"${entity}接口文档"})
+#end
+@RequestMapping("#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+    @Autowired
+    private ${table.serviceName} ${table.entityPath}Service;
+
+    // 根据id查询结果
+    #if(${swagger})
+    @ApiOperation(value = "ById查询${entity}")
+    #end
+    @GetMapping("/{id}")
+    public Result<${entity}> get${entity}ById(@PathVariable Integer id){
+        return Result.success(${table.entityPath}Service.getById(id));
+    }
+
+    // 查询所有结果
+    #if(${swagger})
+    @ApiOperation(value = "获得所有${entity}列表")
+    #end
+    @GetMapping("")
+    public Result<List<${entity}>> getAll${entity}(){
+        return Result.success(${table.entityPath}Service.list());
+    }
+
+
+    // 分页查询
+    #if(${swagger})
+    @ApiOperation(value = "分页查询${entity}数据")
+    #end
+    @GetMapping("/page")
+    public Result<IPage<${entity}>> getPage${entity}(@RequestParam Integer pageNum
+        ,@RequestParam Integer pageSize
+        ,@RequestParam(defaultValue = "") String id){
+        IPage<${entity}> page = new Page<>(pageNum,pageSize);
+        QueryWrapper<${entity}> wrapper = new QueryWrapper<>();
+        if(!id.equals("")){
+            wrapper.like("id",id);
+        }
+        wrapper.orderByDesc("id");
+        return Result.success(${table.entityPath}Service.page(page,wrapper));
+    }
+
+    // 根据实体参数进行新增和更新
+    #if(${swagger})
+    @ApiOperation(value = "新增和更新${entity}")
+    #end
+    @PostMapping("")
+    public Result<Boolean> saveOrUpdate${entity}(@RequestBody ${entity} ${table.entityPath}){
+        return Result.success(${table.entityPath}Service.saveOrUpdate(${table.entityPath}));
+    }
+
+
+    // 根据id删除一条记录
+    #if(${swagger})
+    @ApiOperation(value = "ById删除${entity}")
+    #end
+    @DeleteMapping("/del/{id}")
+    public Result<Boolean> delete${entity}ById(@PathVariable Integer id){
+        return Result.success(${table.entityPath}Service.removeById(id));
+    }
+
+
+    // 根据ids批量删除记录
+    #if(${swagger})
+    @ApiOperation(value = "ByIds批量删除${entity}")
+    #end
+    @PostMapping("/del/batch")
+    public Result<Boolean> delete${entity}BatchByIds(@RequestBody List<Integer> ids){
+        return Result.success(${table.entityPath}Service.removeBatchByIds(ids));
+    }
+
+
+}
+#end
