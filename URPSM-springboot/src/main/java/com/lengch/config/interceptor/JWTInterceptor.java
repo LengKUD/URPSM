@@ -1,18 +1,16 @@
 package com.lengch.config.interceptor;
 
-import cn.hutool.core.util.StrUtil;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.lengch.common.Constants;
+import com.lengch.config.NoAuth;
 import com.lengch.entity.User;
 import com.lengch.exception.ServiceException;
 import com.lengch.service.IUserService;
-import com.lengch.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -34,12 +32,16 @@ public class JWTInterceptor implements HandlerInterceptor {
         String token = request.getHeader("token");
 
         //判断是否映射到方法，如果不是映射到方法直接放行
-        if(!(handler instanceof HandlerMethod)){
+        if (!(handler instanceof HandlerMethod)) {
             return true;
-        }
+        } else {
+            // 如果是映射到方法， 获取方法上是否需要验证的注解，如果有免认证注解就直接放行
+            HandlerMethod hm = (HandlerMethod) handler;
+            NoAuth methodAnnotation = hm.getMethodAnnotation(NoAuth.class);
+            if (methodAnnotation != null) {
+                return true;
+            }
 
-        if (StrUtil.isBlank(token)) {
-            throw new ServiceException(Constants.Code_Token,"请登录");
         }
 
         String userId;
