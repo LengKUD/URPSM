@@ -5,6 +5,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.lengch.common.Result;
+import com.lengch.config.NoAuth;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,7 +86,7 @@ public class FilesController {
     // 根据实体参数进行新增和更新
     @ApiOperation(value = "新增和更新Files")
     @PostMapping("")
-    public Result saveOrUpdateFiles(@RequestBody Files files){
+    public Result<Boolean> saveOrUpdateFiles(@RequestBody Files files){
         return Result.success(filesService.saveOrUpdate(files));
     }
 
@@ -150,6 +151,26 @@ public class FilesController {
         outputStream.flush();
         outputStream.close();
 
+
+    }
+
+    @ApiOperation(value = "文件预览")
+    @NoAuth
+    @GetMapping("/Preview/{fileName}")
+    public HttpServletResponse preview(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+//        找到根据文件名找到文件
+        File uploadFile = new File(uploadPath,fileName);
+//        设置文件流格式
+        ServletOutputStream outputStream = response.getOutputStream();
+        response.addHeader("Content-Disposition","inline;filename="+ URLEncoder.encode(fileName,"UTF-8"));
+        response.setContentType("application/octet-stream");
+
+//        读取文件字节流
+        outputStream.write(FileUtil.readBytes(uploadFile));
+        outputStream.flush();
+        outputStream.close();
+
+        return response;
 
     }
 
